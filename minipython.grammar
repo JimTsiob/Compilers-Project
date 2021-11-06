@@ -18,6 +18,7 @@ Helpers
 
 Tokens
 	tab = 9;
+	eof = 26;
 	plus = '+';
 	minus = '-';
 	mod = '%';
@@ -76,3 +77,134 @@ Tokens
 
 Ignored Tokens
 	blank, line_comment;
+
+
+Productions
+	goal = commands* eof;
+	
+
+	commands = {func} function|
+				{stat} statement;
+	
+	function = {define} def id l_par argument? r_par semi statement;
+
+	argument = {arg} id paraminit? extra_arg*; 
+
+		extra_arg = comma id paraminit?; // ( "," Identifier ("=" Value )?)
+
+		paraminit = eq value; // ("=" Value )
+
+
+	statement =	  {if} tab* if  comparison semi statement |
+				  {while} tab* while comparison semi statement |
+				  {for} tab* for [l_id]:id in [r_id]:id semi statement |
+				  {return} tab* return expression |
+				  {print} tab* print expression extra_expression* | 
+				  {assign} tab* id eq expression | // Identifier = Expression 
+				  {mineqassign} tab* id eqminus expression | // Identifier -= Expression
+				  {diveqassign} tab* id eqdiv expression| // Identifier /= Expression
+				  {bracketassign} tab* id l_br [l_exp]:expression r_br eq [r_exp]:expression |
+				  {assert} tab* assert expression extra_expression? |
+				  {funccall} tab* function_call;
+					
+	
+	expression ={addsub} addsub |
+				{bracket} id l_br expression r_br |
+				{funccall} function_call |
+				{value} value |
+				{id} id |
+				{length} len l_par expression r_par |
+				{max} max l_par value comma_value* r_par |
+				{min} min l_par value comma_value* r_par |
+				{bracketexpression} l_br expression extra_expression* r_br;
+
+		comma_value = comma value; // ( "," Value )
+
+		extra_expression = comma expression; // ("," Expression)
+
+	// kanonas gia tous arithmitikous telestes.
+
+	/*arithmetic_op = {add} expression plus multiplication |
+					{sub} expression minus multiplication;*/
+					
+	/* 
+					{pow} expression dmult multiplication |
+					{mul} [l_exp]:expression mult [r_exp]:expression |
+					{div} [l_exp]:expression div [r_exp]:expression |
+					{mod} [l_exp]:expression mod [r_exp]:expression | 
+	*/
+
+	
+
+	/* expression = {multiplication} multiplication |
+					{addition} expression plus multiplication|
+					{subtraction} expression minus multiplication;
+				*/
+
+	
+	/*arithmetic_op = {addsub} addsub |
+					{muldivmod} muldivmod;*/
+					
+
+	addsub = {add} addsub plus muldivmod |
+			 {sub} addsub minus muldivmod |
+			 {muldivmod} muldivmod;
+			 
+
+	muldivmod =	{mult} muldivmod mult power |
+			 	{div}  muldivmod div power |
+				{mod} muldivmod mod power;
+
+	power = {something} something |
+			{pow_rule} power dmult something; 
+
+	something =  {identifier}id|
+				  {numb}number|
+				  {par} l_par expression r_par;
+
+	importrule = {imp_rule} import module as_rule? commamodule* |
+			 	 {from_rule} from module import id as_rule? commaidentifier*; 
+
+		as_rule = as id; // ("as" Identifier)
+
+		commamodule = comma module as_rule?; // ("," Module ("as" Identifier)?)
+
+		commaidentifier = comma id as_rule?; // ( "," Identifier ("as" Identifier)? )
+
+	module = identdot * id;
+
+		identdot = id dot; // ( Identifier "." )
+
+	comparison = {true} true|
+				 {false} false |
+				 {not_rule} not comparison;
+				 //{and_rule} [l_comp]:comparison and [r_comp]:comparison;
+
+		and_rule = 
+
+	function_call = id l_par arglist? r_par;
+
+	arglist = expression extra_expression*;
+
+	value = {rule1} id dot function_call |
+			{rule2} number |
+			{rule3} string |
+			{rule4} none;
+
+
+
+	/*
+	  SHIFT/REDUCE conflict 
+		expression = {multiplication} multiplication |
+					{addition} [e1]:expression plus [e2]:expression|
+					{subtraction} expression minus multiplication;
+	*/
+
+
+
+
+// kanonas gia logikous telestes.
+logical_op = 	{lessc} [lpar]:expression less [rpar]:expression|
+				 {greatc}[lpar]:expression great [rpar]:expression|
+				 {greateql} [lpar]:expression greateq [rpar]:expression|
+				 {lesseql} [lpar]:expression lesseq [rpar]:expression;
