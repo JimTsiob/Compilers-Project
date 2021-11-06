@@ -101,11 +101,14 @@ Productions
 	statement = {if} tab* if really_really_complex_comparison semi statement |
 				{while} tab* while really_really_complex_comparison semi statement |
 				{for} tab* [id1]:id in [id2]:id semi statement |
-				{return} tab* really_complex_expression |
+				{return} tab* return really_complex_expression |
 				{print} tab* print arglist |
+				{assign} tab* id eq really_complex_expression |
+				{assignmin} tab* id eqminus really_complex_expression |
+				{assigndiv} tab* id eqdiv really_complex_expression |
 				{brassign} tab* id l_br [exp1]:really_complex_expression r_br eq [exp2]:really_complex_expression |
 				{assert} tab* assert really_complex_expression commaexpr? |
-				{funccall} tab* funccall;
+				{functioncall} tab* function_call;
 
 	really_really_complex_comparison = {reallycomplexcomp} really_complex_comparison |
 									{not} not really_really_complex_comparison;
@@ -127,7 +130,7 @@ Productions
 					   {greater} [rce1]:really_complex_expression great [rce2]:really_complex_expression |
 					   {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression;
 
-	funccall = id l_par arglist? r_par;
+	function_call = id l_par arglist? r_par;
 
 	arglist = really_complex_expression commaexpr*;
 
@@ -135,28 +138,30 @@ Productions
 
 	really_complex_expression = {complexexpr} complex_expression |
 							  {add} really_complex_expression plus complex_expression |
-							  {sun} really_complex_expression min complex_expression;
+							  {sub} really_complex_expression minus complex_expression;
 
 	complex_expression = {mediumexpr} medium_expression |
-						{mult} complex_expression mult medium_expression |
-						{div} complex_expression div medium_expression |
-						{mod} complex_expression mod medium_expression;
+						 {mult} complex_expression mult medium_expression |
+						 {div} complex_expression div medium_expression |
+						 {mod} complex_expression mod medium_expression;
 
 	medium_expression = {simpleexpr} simple_expression |
-					   {power} medium_expression dmult simple_expression;
+					    {power} medium_expression dmult simple_expression;
 
-	simple_expression = {brexpr} id l_br really_complex_expression r_br |
-				 	   {funccall} funccall |
-				       {value} value |
-				       {id} id |
-				       {lenexpr} len l_par really_complex_expression r_par |
+	simple_expression = {dummyexpr} dummy_expression |
+						{brexpr} id l_br really_complex_expression r_br |
+				 	    {functioncall} function_call |
+				        {lenexpr} len l_par really_complex_expression r_par |
+					    {brexprs} l_br arglist r_br;
+
+	dummy_expression = {id} id |
+					   {value} value |
 					   {max} max l_par value commavalue* r_par |
-					   {min} min l_par value commavalue* r_par |
-					   {brexprs} l_br arglist r_br;
+					   {min} min l_par value commavalue* r_par;
 
 	commavalue = comma value;
 
-	value = {callonid} id dot funccall |
+	value = {callonid} id dot function_call |
 			{number} number |
 			{string} string_literal |
 			{none} none;
