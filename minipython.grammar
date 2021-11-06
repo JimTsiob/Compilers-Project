@@ -12,11 +12,8 @@ Helpers
 	letter = ['a' .. 'z']|['A' .. 'Z']; 
 	cr = 13; 
 	lf = 10;
-	apostrophe = 39;
-	double_quote = 34;
 	all = [0..127]; 
 	eol = lf | cr | cr lf ;
-	blank = (' ' | lf | cr);
 	not_eol = [all - [cr + lf]]; 
 
 Tokens
@@ -75,7 +72,6 @@ Tokens
 	line_comment = '#' not_eol* eol; 
 	number = digit+ | (digit+ '.' digit+);
 	id = letter (letter | digit)*;
-	string_literal =  double_quote (letter  | blank | digit)*  double_quote |	apostrophe (letter | blank | digit)* apostrophe;
 	string = '"'not_eol* '"';
 
 Ignored Tokens
@@ -85,7 +81,8 @@ Ignored Tokens
 Productions
 	goal = commands*;
 
-	commands = {function} function |
+	commands = {import} import_rule |
+			   {function} function |
 			   {statement} statement;
 
 	function = def id l_par argument? r_par semi statement;
@@ -161,7 +158,24 @@ Productions
 
 	commavalue = comma value;
 
-	value = {callonid} id dot function_call |
+	value = {callonid} iddot function_call |
 			{number} number |
-			{string} string_literal |
+			{string} string |
 			{none} none;
+
+	import_rule = {imp} import moduleas commamoduleas* |
+				 {from} from module import idasid commaidasid*;
+
+	commamoduleas = comma moduleas;
+
+	moduleas = module asid?;
+
+	module = iddot* id;
+	
+	commaidasid = comma idasid;
+
+	idasid = id asid?;
+
+	asid = as id;
+
+	iddot = id dot;

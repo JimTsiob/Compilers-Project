@@ -3,11 +3,14 @@ from math import sqrt
 
 def add(x,y):
     return x+y
+# anathesh symboloseiras se metavlhth
+word = "hello friends!" 
+# anathesh akeraiou arithmou se metavlhth
+intNum = 10 
+# anathesh dekadikou arithmou se metavlhth
+floatNum = 9.5 
+# anathesh listas se metavlhth
+testList = ["apple","banana","orange"] 
 
-word = "hello friends!" # anathesh symboloseiras se metavlhth
-intNum = 10 # anathesh akeraiou arithmou se metavlhth
-floatNum = 9.5 # anathesh dekadikou arithmou se metavlhth
-testList = ["apple","banana","orange"] # anathesh listas se metavlhth
 
-
-print(add(5,10))
+print add(5,10)
