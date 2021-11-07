@@ -72,7 +72,7 @@ Tokens
 	line_comment = '#' not_eol* eol; 
 	number = digit+ | (digit+ '.' digit+);
 	id = letter (letter | digit)*;
-	string = '"'not_eol* '"';
+	string = '"'not_eol* '"' | '''not_eol*''';
 
 Ignored Tokens
 	blank, line_comment;
