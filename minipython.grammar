@@ -18,7 +18,6 @@ Helpers
 
 Tokens
 	tab = 9;
-	eof = 26;
 	plus = '+';
 	minus = '-';
 	mod = '%';
@@ -73,138 +72,110 @@ Tokens
 	line_comment = '#' not_eol* eol; 
 	number = digit+ | (digit+ '.' digit+);
 	id = letter (letter | digit)*;
-	string = '"'not_eol* '"';
+	string = '"'not_eol* '"' | '''not_eol*''';
 
 Ignored Tokens
 	blank, line_comment;
 
 
 Productions
-	goal = commands* eof;
-	
+	goal = commands*;
 
-	commands = {func} function|
-				{stat} statement;
-	
-	function = {define} def id l_par argument? r_par semi statement;
+	commands = {import} import_rule |
+			   {function} function |
+			   {statement} statement;
 
-	argument = {arg} id paraminit? extra_arg*; 
+	function = def id l_par argument? r_par semi statement;
 
-		extra_arg = comma id paraminit?; // ( "," Identifier ("=" Value )?)
+	argument = param commaparam*;
 
-		paraminit = eq value; // ("=" Value )
+	commaparam = comma param;
 
+	param = id assign?;
 
-	statement =	  {if} tab* if  comparison semi statement |
-				  {while} tab* while comparison semi statement |
-				  {for} tab* for [l_id]:id in [r_id]:id semi statement |
-				  {return} tab* return expression |
-				  {print} tab* print expression extra_expression* | 
-				  {assign} tab* id eq expression | // Identifier = Expression 
-				  {mineqassign} tab* id eqminus expression | // Identifier -= Expression
-				  {diveqassign} tab* id eqdiv expression| // Identifier /= Expression
-				  {bracketassign} tab* id l_br [l_exp]:expression r_br eq [r_exp]:expression |
-				  {assert} tab* assert expression extra_expression? |
-				  {funccall} tab* function_call;
-					
-	
-	expression ={addsub} addsub |
-				{bracket} id l_br expression r_br |
-				{funccall} function_call |
-				{value} value |
-				{id} id |
-				{length} len l_par expression r_par |
-				{max} max l_par value comma_value* r_par |
-				{min} min l_par value comma_value* r_par |
-				{bracketexpression} l_br expression extra_expression* r_br;
+	assign = eq value;
 
-		comma_value = comma value; // ( "," Value )
+	statement = {if} tab* if really_really_complex_comparison semi statement |
+				{while} tab* while really_really_complex_comparison semi statement |
+				{for} tab* [id1]:id in [id2]:id semi statement |
+				{return} tab* return really_complex_expression |
+				{print} tab* print arglist |
+				{assign} tab* id eq really_complex_expression |
+				{assignmin} tab* id eqminus really_complex_expression |
+				{assigndiv} tab* id eqdiv really_complex_expression |
+				{brassign} tab* id l_br [exp1]:really_complex_expression r_br eq [exp2]:really_complex_expression |
+				{assert} tab* assert really_complex_expression commaexpr? |
+				{functioncall} tab* function_call;
 
-		extra_expression = comma expression; // ("," Expression)
+	really_really_complex_comparison = {reallycomplexcomp} really_complex_comparison |
+									{not} not really_really_complex_comparison;
 
-	// kanonas gia tous arithmitikous telestes.
+	really_complex_comparison = {complexcomp} complex_comparison |
+							  {and} really_complex_comparison and complex_comparison |
+							  {or} really_complex_comparison or complex_comparison;
 
-	/*arithmetic_op = {add} expression plus multiplication |
-					{sub} expression minus multiplication;*/
-					
-	/* 
-					{pow} expression dmult multiplication |
-					{mul} [l_exp]:expression mult [r_exp]:expression |
-					{div} [l_exp]:expression div [r_exp]:expression |
-					{mod} [l_exp]:expression mod [r_exp]:expression | 
-	*/
+	complex_comparison = {mediumcomp} medium_comparison |
+						{eq} complex_comparison doubleeq medium_comparison |
+						{diff} complex_comparison diff medium_comparison;
+ 
+	medium_comparison = {simplecomp} simple_comparison |
+					   {greatereq} medium_comparison greateq simple_comparison |
+					   {lesseq} medium_comparison lesseq simple_comparison;
 
-	
-
-	/* expression = {multiplication} multiplication |
-					{addition} expression plus multiplication|
-					{subtraction} expression minus multiplication;
-				*/
-
-	
-	/*arithmetic_op = {addsub} addsub |
-					{muldivmod} muldivmod;*/
-					
-
-	addsub = {add} addsub plus muldivmod |
-			 {sub} addsub minus muldivmod |
-			 {muldivmod} muldivmod;
-			 
-
-	muldivmod =	{mult} muldivmod mult power |
-			 	{div}  muldivmod div power |
-				{mod} muldivmod mod power;
-
-	power = {something} something |
-			{pow_rule} power dmult something; 
-
-	something =  {identifier}id|
-				  {numb}number|
-				  {par} l_par expression r_par;
-
-	importrule = {imp_rule} import module as_rule? commamodule* |
-			 	 {from_rule} from module import id as_rule? commaidentifier*; 
-
-		as_rule = as id; // ("as" Identifier)
-
-		commamodule = comma module as_rule?; // ("," Module ("as" Identifier)?)
-
-		commaidentifier = comma id as_rule?; // ( "," Identifier ("as" Identifier)? )
-
-	module = identdot * id;
-
-		identdot = id dot; // ( Identifier "." )
-
-	comparison = {true} true|
-				 {false} false |
-				 {not_rule} not comparison;
-				 //{and_rule} [l_comp]:comparison and [r_comp]:comparison;
-
-		and_rule = 
+	simple_comparison = {false} false |
+					   {true} true |
+					   {greater} [rce1]:really_complex_expression great [rce2]:really_complex_expression |
+					   {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression;
 
 	function_call = id l_par arglist? r_par;
 
-	arglist = expression extra_expression*;
+	arglist = really_complex_expression commaexpr*;
 
-	value = {rule1} id dot function_call |
-			{rule2} number |
-			{rule3} string |
-			{rule4} none;
+	commaexpr = comma really_complex_expression;
 
+	really_complex_expression = {complexexpr} complex_expression |
+							  {add} really_complex_expression plus complex_expression |
+							  {sub} really_complex_expression minus complex_expression;
 
+	complex_expression = {mediumexpr} medium_expression |
+						 {mult} complex_expression mult medium_expression |
+						 {div} complex_expression div medium_expression |
+						 {mod} complex_expression mod medium_expression;
 
-	/*
-	  SHIFT/REDUCE conflict 
-		expression = {multiplication} multiplication |
-					{addition} [e1]:expression plus [e2]:expression|
-					{subtraction} expression minus multiplication;
-	*/
+	medium_expression = {simpleexpr} simple_expression |
+					    {power} medium_expression dmult simple_expression;
 
+	simple_expression = {dummyexpr} dummy_expression |
+						{brexpr} id l_br really_complex_expression r_br |
+				 	    {functioncall} function_call |
+				        {lenexpr} len l_par really_complex_expression r_par |
+					    {brexprs} l_br arglist r_br;
 
+	dummy_expression = {id} id |
+					   {value} value |
+					   {max} max l_par value commavalue* r_par |
+					   {min} min l_par value commavalue* r_par;
 
+	commavalue = comma value;
 
-// kanonas gia logikous telestes.
-logical_op = 	{lessc} [lpar]:expression less [rpar]:expression|
-				 {greatc}[lpar]:expression great [rpar]:expression|
-				 {greateql} [lpar]:expression greateq [rpar]:expression|
-				 {lesseql} [lpar]:expression lesseq [rpar]:expression;
+	value = {callonid} iddot function_call |
+			{number} number |
+			{string} string |
+			{none} none;
+
+	import_rule = {imp} import moduleas commamoduleas* |
+				 {from} from module import idasid commaidasid*;
+
+	commamoduleas = comma moduleas;
+
+	moduleas = module asid?;
+
+	module = iddot* id;
+	
+	commaidasid = comma idasid;
+
+	idasid = id asid?;
+
+	asid = as id;
+
+	iddot = id dot;
