@@ -1,5 +1,9 @@
 #minipython directory
 minpython/*
+minipython/analysis/*
+minipython/lexer/*
+minipython/node/*
+minipython/parser/*
 
 # Compiled class file
 *.class
