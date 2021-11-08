@@ -1,5 +1,5 @@
 #minipython directory
-minpython/
+minpython/*
 
 # Compiled class file
 *.class
