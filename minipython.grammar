@@ -95,8 +95,8 @@ Productions
 
 	assign = eq value;
 
-	statement = {if} tab* if really_really_complex_comparison semi statement |
-				{while} tab* while really_really_complex_comparison semi statement |
+	statement = {if} tab* if complex_comparison semi statement |
+				{while} tab* while complex_comparison semi statement |
 				{for} tab* [id1]:id in [id2]:id semi statement |
 				{return} tab* return really_complex_expression |
 				{print} tab* print arglist |
@@ -107,25 +107,21 @@ Productions
 				{assert} tab* assert really_complex_expression commaexpr? |
 				{functioncall} tab* function_call;
 
-	really_really_complex_comparison = {reallycomplexcomp} really_complex_comparison |
-									{not} not really_really_complex_comparison;
-
-	really_complex_comparison = {complexcomp} complex_comparison |
-							  {and} really_complex_comparison and complex_comparison |
-							  {or} really_complex_comparison or complex_comparison;
-
 	complex_comparison = {mediumcomp} medium_comparison |
-						{eq} complex_comparison doubleeq medium_comparison |
-						{diff} complex_comparison diff medium_comparison;
- 
+									{not} not complex_comparison;
+
 	medium_comparison = {simplecomp} simple_comparison |
-					   {greatereq} medium_comparison greateq simple_comparison |
-					   {lesseq} medium_comparison lesseq simple_comparison;
+						{and} medium_comparison and simple_comparison |
+						{or} medium_comparison or simple_comparison;
 
 	simple_comparison = {false} false |
-					   {true} true |
-					   {greater} [rce1]:really_complex_expression great [rce2]:really_complex_expression |
-					   {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression;
+					    {true} true |
+					    {greater} [rce1]:really_complex_expression great [rce2]:really_complex_expression |
+					    {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression |
+					    {greatereq} [rce1]:really_complex_expression greateq [rce2]:really_complex_expression |
+					    {lesseq} [rce1]:really_complex_expression lesseq [rce2]:really_complex_expression |
+					    {eq} [rce1]:really_complex_expression doubleeq [rce2]:really_complex_expression |
+					    {diff} [rce1]:really_complex_expression diff [rce2]:really_complex_expression;
 
 	function_call = id l_par arglist? r_par;
 
