@@ -4,7 +4,7 @@
 def fib(n):    # write Fibonacci series up to n
                a = 0
                b = 1
-               while a <= n:
+               while not a <= n and false:
                         print a
                         a = b
                         b = a + b

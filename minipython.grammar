@@ -11,6 +11,7 @@ Helpers
 	digit = ['0' .. '9'];
 	letter = ['a' .. 'z']|['A' .. 'Z']; 
 	cr = 13; 
+	underscore = '_'; // diko mas
 	lf = 10;
 	all = [0..127]; 
 	eol = lf | cr | cr lf ;
@@ -71,7 +72,7 @@ Tokens
 	blank = (' ' | lf | cr);
 	line_comment = '#' not_eol* eol; 
 	number = digit+ | (digit+ '.' digit+);
-	id = letter (letter | digit)*;
+	id = (letter | underscore) (letter | digit | underscore)*; // id name can also contain underscores
 	string = '"'not_eol* '"' | '''not_eol*''';
 
 Ignored Tokens
@@ -81,8 +82,7 @@ Ignored Tokens
 Productions
 	goal = commands*;
 
-	commands = {import} import_rule |
-			   {function} function |
+	commands = {function} function |
 			   {statement} statement;
 
 	function = def id l_par argument? r_par semi statement;
@@ -95,9 +95,10 @@ Productions
 
 	assign = eq value;
 
-	statement = {if} tab* if complex_comparison semi statement |
-				{while} tab* while complex_comparison semi statement |
-				{for} tab* [id1]:id in [id2]:id semi statement |
+	statement = {import} tab* import_rule |
+				{if} tab* if really_complex_comparison semi statement |
+				{while} tab* while really_complex_comparison semi statement |
+				{for} tab* for [id1]:id in [id2]:id semi statement |
 				{return} tab* return really_complex_expression |
 				{print} tab* print arglist |
 				{assign} tab* id eq really_complex_expression |
@@ -107,12 +108,14 @@ Productions
 				{assert} tab* assert really_complex_expression commaexpr? |
 				{functioncall} tab* function_call;
 
+	really_complex_comparison = {complexcomp} complex_comparison |
+								{or} really_complex_comparison or complex_comparison;
+
 	complex_comparison = {mediumcomp} medium_comparison |
-									{not} not complex_comparison;
+						 {and} complex_comparison and medium_comparison;
 
 	medium_comparison = {simplecomp} simple_comparison |
-						{and} medium_comparison and simple_comparison |
-						{or} medium_comparison or simple_comparison;
+						{not} not medium_comparison;
 
 	simple_comparison = {false} false |
 					    {true} true |
@@ -120,8 +123,8 @@ Productions
 					    {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression |
 					    {greatereq} [rce1]:really_complex_expression greateq [rce2]:really_complex_expression |
 					    {lesseq} [rce1]:really_complex_expression lesseq [rce2]:really_complex_expression |
-					    {eq} [rce1]:really_complex_expression doubleeq [rce2]:really_complex_expression |
-					    {diff} [rce1]:really_complex_expression diff [rce2]:really_complex_expression;
+					    {diff} [rce1]:really_complex_expression diff [rce2]:really_complex_expression |
+					    {eq} [rce1]:really_complex_expression doubleeq [rce2]:really_complex_expression;
 
 	function_call = id l_par arglist? r_par;
 
@@ -141,16 +144,14 @@ Productions
 	medium_expression = {simpleexpr} simple_expression |
 					    {power} medium_expression dmult simple_expression;
 
-	simple_expression = {dummyexpr} dummy_expression |
+	simple_expression = {id} id |
+					    {value} value |
+					    {max} max l_par value commavalue* r_par |
+					    {min} min l_par value commavalue* r_par|
 						{brexpr} id l_br really_complex_expression r_br |
 				 	    {functioncall} function_call |
 				        {lenexpr} len l_par really_complex_expression r_par |
 					    {brexprs} l_br arglist r_br;
-
-	dummy_expression = {id} id |
-					   {value} value |
-					   {max} max l_par value commavalue* r_par |
-					   {min} min l_par value commavalue* r_par;
 
 	commavalue = comma value;
 
