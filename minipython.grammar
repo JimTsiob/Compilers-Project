@@ -75,17 +75,54 @@ Tokens
 	id = (letter | underscore) (letter | digit | underscore)*; // id name can also contain underscores
 	string = '"'not_eol* '"' | '''not_eol*''';
 
+
+
 Ignored Tokens
 	blank, line_comment;
 
 
+
+
+
 Productions
+
+
+
+
+	// GOAL-------------------------------------------
+
+
+
 	goal = commands*;
+
 
 	commands = {function} function |
 			   {statement} statement;
 
+
+	// END GOAL---------------------------------------
+
+
+
+
+	// FUNCTION------------------------------------
+
+
+
 	function = def id l_par argument? r_par semi statement;
+
+
+
+
+	// END FUNCTION-------------------------------------
+
+
+
+
+
+
+	// ARGUMENT---------------------------
+
 
 	argument = param commaparam*;
 
@@ -95,70 +132,94 @@ Productions
 
 	assign = eq value;
 
+
+
+	// END ARGUMENT---------------------------
+
+
+
+
+
+
+	// STATEMENT------------------------------------
+
+
 	statement = {import} tab* import_rule |
-				{if} tab* if really_complex_comparison semi statement |
-				{while} tab* while really_complex_comparison semi statement |
+				{if} tab* if comparison semi statement |
+				{while} tab* while comparison semi statement |
 				{for} tab* for [id1]:id in [id2]:id semi statement |
-				{return} tab* return really_complex_expression |
+				{return} tab* return expression |
 				{print} tab* print arglist |
-				{assign} tab* id eq really_complex_expression |
-				{assignmin} tab* id eqminus really_complex_expression |
-				{assigndiv} tab* id eqdiv really_complex_expression |
-				{brassign} tab* id l_br [exp1]:really_complex_expression r_br eq [exp2]:really_complex_expression |
-				{assert} tab* assert really_complex_expression commaexpr? |
+				{assign} tab* id eq expression |
+				{assignmin} tab* id eqminus expression |
+				{assigndiv} tab* id eqdiv expression |
+				{brassign} tab* id l_br [exp1]:expression r_br eq [exp2]:expression |
+				{assert} tab* assert expression commaexpr? |
 				{functioncall} tab* function_call;
 
-	really_complex_comparison = {complexcomp} complex_comparison |
-								{or} really_complex_comparison or complex_comparison;
 
-	complex_comparison = {mediumcomp} medium_comparison |
-						 {and} complex_comparison and medium_comparison;
 
-	medium_comparison = {simplecomp} simple_comparison |
-						{not} not medium_comparison;
 
-	simple_comparison = {false} false |
-					    {true} true |
-					    {greater} [rce1]:really_complex_expression great [rce2]:really_complex_expression |
-					    {less} [rce1]:really_complex_expression less [rce2]:really_complex_expression |
-					    {greatereq} [rce1]:really_complex_expression greateq [rce2]:really_complex_expression |
-					    {lesseq} [rce1]:really_complex_expression lesseq [rce2]:really_complex_expression |
-					    {diff} [rce1]:really_complex_expression diff [rce2]:really_complex_expression |
-					    {eq} [rce1]:really_complex_expression doubleeq [rce2]:really_complex_expression;
+	// END STATEMENT-------------------------------------
 
-	function_call = id l_par arglist? r_par;
 
-	arglist = really_complex_expression commaexpr*;
 
-	commaexpr = comma really_complex_expression;
 
-	really_complex_expression = {complexexpr} complex_expression |
-							  {add} really_complex_expression plus complex_expression |
-							  {sub} really_complex_expression minus complex_expression;
 
-	complex_expression = {mediumexpr} medium_expression |
-						 {mult} complex_expression mult medium_expression |
-						 {div} complex_expression div medium_expression |
-						 {mod} complex_expression mod medium_expression;
 
-	medium_expression = {simpleexpr} simple_expression |
-					    {power} medium_expression dmult simple_expression;
 
-	simple_expression = {id} id |
+
+
+
+
+	// EXPRESSION---------------------------------------
+
+
+	
+
+	something = 		{id} id |
 					    {value} value |
 					    {max} max l_par value commavalue* r_par |
 					    {min} min l_par value commavalue* r_par|
-						{brexpr} id l_br really_complex_expression r_br |
+						{brexpr} id l_br expression r_br |
 				 	    {functioncall} function_call |
-				        {lenexpr} len l_par really_complex_expression r_par |
+				        {lenexpr} len l_par expression r_par |
 					    {brexprs} l_br arglist r_br;
 
-	commavalue = comma value;
 
-	value = {callonid} iddot function_call |
-			{number} number |
-			{string} string |
-			{none} none;
+
+	pow_expression = {smth} something |
+					    {power} pow_expression dmult something;
+
+
+
+
+	mult_div_mod_expression = {powexpr} pow_expression |
+						 {mult} mult_div_mod_expression mult pow_expression |
+						 {div} mult_div_mod_expression div pow_expression |
+						 {mod} mult_div_mod_expression mod pow_expression;
+
+
+
+	add_sub_expression = {multdivmodexpr} mult_div_mod_expression |
+							  {add} add_sub_expression plus mult_div_mod_expression |
+							  {sub} add_sub_expression minus mult_div_mod_expression;
+
+
+
+	expression = add_sub_expression;
+
+
+
+	// END EXPRESSION-------------------------------------------
+
+
+
+
+
+
+	// IMPORT - MODULE -------------------------------------------------
+
 
 	import_rule = {imp} import moduleas commamoduleas* |
 				 {from} from module import idasid commaidasid*;
@@ -176,3 +237,91 @@ Productions
 	asid = as id;
 
 	iddot = id dot;
+
+
+
+
+	// END IMPORT - MODULE ----------------------------------------------
+
+
+
+
+
+
+
+
+	// COMPARISON-----------------------------------------
+
+
+
+
+	csomething = {false} false |
+					    {true} true |
+					    {greater} [rce1]:expression great [rce2]:expression |
+					    {less} [rce1]:expression less [rce2]:expression |
+					    {greatereq} [rce1]:expression greateq [rce2]:expression |
+					    {lesseq} [rce1]:expression lesseq [rce2]:expression |
+					    {diff} [rce1]:expression diff [rce2]:expression |
+					    {eq} [rce1]:expression doubleeq [rce2]:expression;
+
+
+	not_comparison = {simplecomp} csomething |
+						{not} not not_comparison;
+
+
+	and_comparison = {notcomp} not_comparison |
+						 {and} and_comparison and not_comparison;
+
+
+
+	or_comparison = {andcomp} and_comparison |
+								{or} or_comparison or and_comparison;
+
+
+	comparison = or_comparison;
+
+
+
+	// END COMPARISON-------------------------------------------
+
+
+
+
+
+	// FUNCTION CALL----------------------------
+
+
+	function_call = id l_par arglist? r_par;
+
+
+
+	// END FUNCTION CALL--------------------------
+
+
+
+
+
+
+	// ARGLIST------------------------------------
+
+	arglist = expression commaexpr*;
+
+	commaexpr = comma expression;
+
+
+	// END ARGLIST-------------------------------------
+
+
+
+
+
+
+	// VALUE------------------------------------------------------
+
+
+	commavalue = comma value;
+
+	value = {callonid} iddot function_call |
+			{number} number |
+			{string} string |
+			{none} none;
