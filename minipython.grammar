@@ -150,6 +150,7 @@ Productions
 				{for} tab* for [id1]:id in [id2]:id semi statement |
 				{return} tab* return expression |
 				{print} tab* print arglist |
+				{commawarning} tab* id comma arglist |
 				{assign} tab* id eq expression |
 				{assignmin} tab* id eqminus expression |
 				{assigndiv} tab* id eqdiv expression |
@@ -173,10 +174,7 @@ Productions
 
 
 	// EXPRESSION---------------------------------------
-
-
 	
-
 	basic_expression = 	{id} id |
 					    {value} value |
 					    {max} max l_par value commavalue* r_par |
