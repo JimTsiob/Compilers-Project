@@ -1,0 +1,594 @@
+/*
+* Dimitrios Tsiompikas 3180223
+* Ana Lleshi 3180095
+* Elena Fourtouni 3180196
+* Petros Tsotsi 3180193
+*/
+
+Package minipython;
+
+Helpers
+	digit = ['0' .. '9'];
+	letter = ['a' .. 'z']|['A' .. 'Z']; 
+	cr = 13; 
+	underscore = '_'; // diko mas
+	lf = 10;
+	all = [0..127]; 
+	eol = lf | cr | cr lf ;
+	not_eol = [all - [cr + lf]]; 
+
+Tokens
+	tab = 9;
+	plus = '+';
+	minus = '-';
+	mod = '%';
+	mult = '*';
+	dmult = '**';
+	div = '/';
+	eq = '=';
+	eqminus = '-='; // diko mas 
+	eqdiv = '/='; // diko mas
+	exclam = '!'; 
+	dictt = 'dict';
+	def = 'def';
+	logic_plus = '&&';
+	l_par = '(';
+	r_par = ')';
+	l_br = '[';
+	r_br = ']';
+	comma=',';
+	qmark = '?';
+	gqmark = ';';
+	dot = '.'; // diko mas
+	if = 'if';
+	elif = 'elif';
+	else = 'else';
+	while = 'while';
+	for = 'for'; // diko mas
+	in = 'in'; // diko mas
+	print = 'print';
+	return = 'return';
+	assert = 'assert'; // diko mas
+	len = 'len'; // diko mas
+	max = 'max'; // diko mas
+	min = 'min'; // diko mas
+	import = 'import'; // diko mas 
+	from = 'from'; // diko mas 
+	as = 'as'; // diko mas 
+	and = 'and'; // diko mas
+	or = 'or'; // diko mas
+	not = 'not'; // diko mas
+	less = '<';
+	great = '>';
+	greateq = '>='; // diko mas
+	lesseq = '<='; // diko mas
+	diff = '!='; // diko mas
+	doubleeq = '=='; // diko mas 
+	true = 'true'; 
+	semi = ':';
+	false = 'false';
+	none = 'None'; // diko mas
+	quote = '"';
+	blank = (' ' | lf | cr);
+	line_comment = '#' not_eol* eol; 
+	number = digit+ | (digit+ '.' digit+);
+	id = (letter | underscore) (letter | digit | underscore)*; // id name can also contain underscores
+	string = '"'not_eol* '"' | '''not_eol*''';
+
+
+
+Ignored Tokens
+	blank, line_comment;
+
+
+
+
+
+Productions
+
+
+
+
+	// GOAL-------------------------------------------
+
+
+
+	goal = commands* {-> New goal ( [commands] ) } ;
+
+
+	commands = {function} function {-> New commands.function(function) } |
+			   {statement} statement {-> New commands.statement(statement) } ;
+
+
+	// END GOAL---------------------------------------
+
+
+
+
+	// FUNCTION------------------------------------
+
+
+
+	function = def id l_par argument? r_par semi statement {-> New function (id, [argument] , statement) };
+
+
+
+
+	// END FUNCTION-------------------------------------
+
+
+
+
+
+
+	// ARGUMENT---------------------------
+
+
+	argument = param commaparam* {-> New argument ( [param]) };
+
+
+
+	commaparam{->param} = comma param {-> param };
+
+
+
+	param = id assign? {-> New param (id,[assign.value] ) };
+
+
+
+	assign{->value} = eq value {-> value };
+
+
+
+	// END ARGUMENT---------------------------
+
+
+
+
+
+
+	// STATEMENT------------------------------------
+
+
+	statement = {import} tab* import_rule {-> New statement.import(import_rule) } |
+
+
+				{if} tab* if comparison semi statement {-> New statement.if(comparison,statement) } |
+
+
+				{while} tab* while comparison semi statement {-> New statement.while(comparison,statement) } |
+
+
+				{for} tab* for [id1]:id in [id2]:id semi statement {-> New statement.for(id1,id2,statement) } |
+
+
+				{return} tab* return expression {-> New statement.return(expression) } |
+
+
+				{print} tab* print arglist {-> New statement.print(arglist) } |
+
+
+				{commawarning} tab* id comma arglist {-> New statement.commawarning(id,arglist)}|
+
+
+				{assign} tab* id eq expression {-> New statement.assign(id,expression) } |
+
+
+				{assignmin} tab* id eqminus expression {-> New statement.assignmin(id,expression) } |
+
+
+				{assigndiv} tab* id eqdiv expression {-> New statement.assigndiv(id,expression) } |
+
+
+				{brassign} tab* id l_br [exp1]:expression r_br eq [exp2]:expression {-> New statement.brassign(id,exp1,exp2) } |
+
+
+				{assert} tab* assert expression commaexpr? {-> New statement.assert( [expression] ) } |
+
+
+				{functioncall} tab* function_call {-> New statement.functioncall(function_call) } ;
+
+
+
+
+	// END STATEMENT-------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+	// EXPRESSION---------------------------------------
+
+	
+
+	expression = 	{multdivmodexpr} mult_div_mod_expression{-> mult_div_mod_expression.expression} |
+
+					{add} expression plus mult_div_mod_expression{-> New expression.add(expression,mult_div_mod_expression.expression) } |
+
+					{sub} expression minus mult_div_mod_expression{-> New expression.sub(expression,mult_div_mod_expression.expression) };
+
+
+
+	mult_div_mod_expression{->expression} = {powexpr} pow_expression{-> pow_expression.expression} |
+
+						 {mult} mult_div_mod_expression mult pow_expression{-> New expression.mult(mult_div_mod_expression.expression , pow_expression.expression)} |
+
+						 {div} mult_div_mod_expression div pow_expression{-> New expression.div(mult_div_mod_expression.expression , pow_expression.expression)} |
+
+						 {mod} mult_div_mod_expression mod pow_expression{-> New expression.mod(mult_div_mod_expression.expression , pow_expression.expression) };
+
+
+
+	pow_expression{->expression} = {smth} basic_expression{-> basic_expression.expression} |
+
+					    {power} pow_expression dmult basic_expression{-> New expression.power(pow_expression.expression , basic_expression.expression) };
+
+
+
+
+	basic_expression{->expression} = 
+						{id} id {->New expression.id(id) } |
+					    {value} value {-> New expression.value(value) } |
+					    {max} max l_par value commavalue* r_par {-> New expression.max([value]) } |
+					    {min} min l_par value commavalue* r_par {-> New expression.min([value]) }|
+						{brexpr} id l_br expression r_br {-> New expression.brexpr(id,expression)} |
+				 	    {functioncall} function_call {-> New expression.functioncall(function_call) } |
+				        {lenexpr} len l_par expression r_par {->expression} |
+					    {brexprs} l_br arglist r_br {-> New expression.brexprs(arglist) };
+
+
+
+	
+
+	// END EXPRESSION-------------------------------------------
+
+
+
+
+
+
+	// IMPORT-------------------------------------------------
+
+
+	import_rule = {imp} import moduleas commamoduleas* {-> New import_rule.imp(     [moduleas] ) } |
+
+
+
+	{from} from module import idasid commaidasid* {-> New import_rule.from(module,  [idasid] ) };
+
+
+
+	commamoduleas{->moduleas} = comma moduleas {-> moduleas } ;
+
+
+
+	moduleas = module asid? {-> New moduleas (module, [asid.id] ) };
+
+	
+
+
+	commaidasid{->idasid} = comma idasid {-> idasid };
+
+
+
+
+	idasid = id asid? {-> New idasid ([id] ) };
+
+
+
+	asid{->id} = as id {-> id };
+
+
+
+
+	// END IMPORT ----------------------------------------------
+
+
+
+	//MODULE----------------------------------------------------
+
+
+
+
+	module = iddot* id {-> New module ([id]) };
+
+	iddot{->id} = id dot {-> id };
+
+
+
+	//END MODULE-----------------------------------------------
+
+
+
+
+
+	// COMPARISON-----------------------------------------
+
+
+
+	comparison = {andcomp} and_comparison{->and_comparison.comparison} |
+				 {or} comparison or and_comparison{-> New comparison.or(comparison,and_comparison.comparison)};
+
+
+	and_comparison{->comparison} = 
+
+
+					{notcomp} not_comparison{->not_comparison.comparison} |
+				  {and} and_comparison and not_comparison{-> New comparison.and(and_comparison.comparison , not_comparison.comparison) };
+
+
+
+	not_comparison{->comparison} = {simplecomp} basic_comparison{-> basic_comparison.comparison} |
+						{not} not not_comparison{-> New comparison.not(not_comparison.comparison) };
+
+
+
+	basic_comparison{->comparison} = {false} false{-> New comparison.false()} |
+					    {true} true{-> New comparison.true()} |
+					    {greater} [rce1]:expression great [rce2]:expression{-> New comparison.greater(rce1,rce2) } |
+					    {less} [rce1]:expression less [rce2]:expression{-> New comparison.less(rce1,rce2)} |
+					    {greatereq} [rce1]:expression greateq [rce2]:expression{-> New comparison.greatereq(rce1,rce2)} |
+					    {lesseq} [rce1]:expression lesseq [rce2]:expression{-> New comparison.lesseq(rce1,rce2) } |
+					    {diff} [rce1]:expression diff [rce2]:expression{-> New comparison.diff(rce1,rce2) } |
+					    {eq} [rce1]:expression doubleeq [rce2]:expression{-> New comparison.eq(rce1,rce2) };
+
+
+
+	// END COMPARISON-------------------------------------------
+
+
+
+
+
+	// FUNCTION CALL----------------------------
+
+
+	function_call = id l_par arglist? r_par {-> New function_call (id, [arglist] ) } ;
+
+
+
+	// END FUNCTION CALL--------------------------
+
+
+
+
+
+
+	// ARGLIST------------------------------------
+
+	arglist = expression commaexpr* {-> New arglist ([expression] ) } ;
+
+
+	commaexpr{->expression} = comma expression {-> expression } ;
+
+
+	// END ARGLIST-------------------------------------
+
+
+
+
+
+
+	// VALUE------------------------------------------------------
+
+
+	commavalue{->value} = comma value{->value}; 
+
+	value = 
+
+	{callonid} id dot function_call {-> New value.callonid(id,function_call) }|
+
+
+			{number} number {-> New value.number(number) } |
+
+
+			{string} string {-> New value.string(string) } |
+
+
+			{none} none {-> New value.none(none) } ;
+
+
+
+
+
+
+// ABSTRACT SYNTAX TREE------------------------------------------------------
+
+
+Abstract Syntax Tree 
+
+
+
+
+
+
+
+
+
+// GOAL----------------------------------------------------------------
+
+goal = commands*;
+
+
+commands = {function} function |
+			{statement} statement;
+
+
+
+//END GOAL---------------------------------------------------------------
+
+
+
+//FUNCTION--------------------------------------------------------------
+
+
+function = id argument* statement;
+
+
+
+//END FUNCTION------------------------------------------------------------
+
+
+
+// ARGUMENT-----------------------------------------------------------------
+
+
+argument = param*; 
+
+
+param = id value*;
+
+
+
+
+
+// END ARGUMENT-----------------------------------------------------------
+
+
+
+// STATEMENT---------------------------------------------
+
+
+statement = {import} import_rule |
+			{if} comparison statement |
+			{while} comparison statement |
+			{for} [id1]:id [id2]:id statement |
+			{return} expression |
+			{print} arglist |
+			{commawarning} id arglist |
+			{assign} id expression |
+			{assignmin} id expression |
+			{assigndiv} id expression |
+			{brassign} id [exp1]:expression [exp2]:expression |
+			{assert} expression* |
+			{functioncall} function_call;
+
+
+// END STATEMENT---------------------------------------------
+
+
+// EXPRESSION-------------------------------------------------
+
+
+expression = {add} [l]:expression [r]:expression |
+			 {sub} [l]:expression [r]:expression |
+			 {mult} [l]:expression [r]:expression |
+			 {div} [l]:expression [r]:expression |
+			 {mod} [l]:expression [r]:expression |
+			 {power} [l]:expression [r]:expression |
+			 {id} id |
+			 {value} value |
+			 {max} value* |
+			 {min} value* |
+			 {brexpr} id expression |
+			 {functioncall} function_call |
+			 {brexprs} arglist ;
+
+
+
+
+// END EXPRESSION----------------------------------------------
+
+
+
+
+// IMPORT------------------------------------------------
+
+import_rule = {imp} moduleas* |
+			  {from} module idasid* ;
+
+
+
+moduleas = module id*;
+
+
+idasid = id*;
+
+
+
+
+// END IMPORT-----------------------------------------------
+
+
+
+
+
+// MODULE---------------------------------------------------
+
+module = id* ;
+
+
+
+// END MODULE--------------------------------------------------
+
+
+
+//COMPARISON-------------------------------------------------
+
+
+comparison = {or} [l]:comparison [r]:comparison |
+			 {and} [l]:comparison [r]:comparison |
+			 {not} comparison |
+			 {true} |
+			 {false} |
+			 {greater} [rce1]:expression [rce2]:expression |
+			 {less} [rce1]:expression [rce2]:expression |
+			 {greatereq} [rce1]:expression [rce2]:expression |
+			 {lesseq} [rce1]:expression [rce2]:expression |
+			 {diff} [rce1]:expression [rce2]:expression |
+			 {eq}  [rce1]:expression [rce2]:expression ;
+
+
+
+
+//END COMPARISON------------------------------------------------
+
+
+
+//FUNCTION CALL------------------------------------------------
+
+
+function_call = id arglist*;
+
+
+
+//END FUNCTION CALL----------------------------------------------
+
+
+
+
+//ARGLIST-------------------------------------------------------
+
+
+
+arglist = expression*;
+
+
+
+
+//END ARGLIST--------------------------------------------------
+
+
+
+// VALUE-------------------------------------------------------
+
+value = {callonid} id function_call |
+		{number} number |
+		{string} string |
+		{none} none;
+					
+
+// END VALUE---------------------------------------------------
+
+
+
+
+
+
+
