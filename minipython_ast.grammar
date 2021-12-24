@@ -124,11 +124,11 @@ Productions
 	// ARGUMENT---------------------------
 
 
-	argument = param commaparam* {-> New argument ( [param]) };
+	argument = param commaparam* {-> New argument ( param , [commaparam]) };
 
 
 
-	commaparam{->param} = comma param {-> param };
+	commaparam = comma param {-> New commaparam(param) };
 
 
 
@@ -166,9 +166,6 @@ Productions
 
 
 				{print} tab* print arglist {-> New statement.print(arglist) } |
-
-
-				{commawarning} tab* id comma arglist {-> New statement.commawarning(id,arglist)}|
 
 
 				{assign} tab* id eq expression {-> New statement.assign(id,expression) } |
@@ -378,7 +375,7 @@ Productions
 	// VALUE------------------------------------------------------
 
 
-	commavalue{->value} = comma value{->value}; 
+	commavalue{->value} = comma value{->value};
 
 	value = 
 
@@ -439,11 +436,12 @@ function = id argument* statement;
 // ARGUMENT-----------------------------------------------------------------
 
 
-argument = param*; 
+argument = param commaparam*; 
 
 
 param = id value*;
 
+commaparam = param;
 
 
 
@@ -461,7 +459,6 @@ statement = {import} import_rule |
 			{for} [id1]:id [id2]:id statement |
 			{return} expression |
 			{print} arglist |
-			{commawarning} id arglist |
 			{assign} id expression |
 			{assignmin} id expression |
 			{assigndiv} id expression |
@@ -581,7 +578,7 @@ arglist = expression*;
 value = {callonid} id function_call |
 		{number} number |
 		{string} string |
-		{none} none;
+		{none} none;		// TO NONE NA TO KANW OPWS TA TRUE KAI FALSE
 					
 
 // END VALUE---------------------------------------------------
