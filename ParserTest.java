@@ -16,7 +16,9 @@ public class ParserTest
         new PushbackReader(
         new FileReader(args[0].toString()), 1024)));
 
-     Hashtable symtable =  new Hashtable();
+    
+    SymbolTable symtable = new SymbolTable();
+
      Start ast = parser.parse();
      ast.apply(new Visitor1(symtable));
      ast.apply(new Visitor2(symtable));
@@ -26,7 +28,8 @@ public class ParserTest
     }
     catch (Exception e)
     {
-      System.err.println(e);
+      //System.err.println(e);
+      e.printStackTrace();
     }
   }
 }

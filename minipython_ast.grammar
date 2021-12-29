@@ -359,10 +359,10 @@ Productions
 
 	// ARGLIST------------------------------------
 
-	arglist = expression commaexpr* {-> New arglist ([expression] ) } ;
+	arglist = expression commaexpr* {-> New arglist (expression, [commaexpr] ) } ;
 
 
-	commaexpr{->expression} = comma expression {-> expression } ;
+	commaexpr = comma expression {-> New commaexpr(expression) } ;
 
 
 	// END ARGLIST-------------------------------------
@@ -388,7 +388,7 @@ Productions
 			{string} string {-> New value.string(string) } |
 
 
-			{none} none {-> New value.none(none) } ;
+			{none} none {-> New value.none() } ;
 
 
 
@@ -564,9 +564,9 @@ function_call = id arglist*;
 
 
 
-arglist = expression*;
+arglist = expression commaexpr*;
 
-
+commaexpr = expression;
 
 
 //END ARGLIST--------------------------------------------------
@@ -578,7 +578,7 @@ arglist = expression*;
 value = {callonid} id function_call |
 		{number} number |
 		{string} string |
-		{none} none;		// TO NONE NA TO KANW OPWS TA TRUE KAI FALSE
+		{none} ;		// TO NONE NA TO KANW OPWS TA TRUE KAI FALSE
 					
 
 // END VALUE---------------------------------------------------

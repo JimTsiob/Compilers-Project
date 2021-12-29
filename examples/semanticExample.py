@@ -7,36 +7,64 @@ print k
 k = 0
 
 # elegxos 2 : Klhsh mh dhlwmenhs synarthshs
-add(5,2)
 a()
 
 # elegxos xrhshs synarthshs prin th dhlwsh (gia 2o elegxo)
 def a():
    print "hello!"
 
+back()
+# elegxos 3 : Lathos orismos orismatwn se synarthsh
 
+def sub(x,y,z = 3):
+   return x-y-z
+
+add(1) # lathos periptwsh 1
+add(1,3,4) # lathos periptwsh 2
+add() # lathos periptwsh 3
+a(1,3) # lathos periptwsh 4 (synarthsh pou den exei kan arguments pairnei argument lanthasmena apo ton user)
+sub(1) # lathos periptwsh 5 gia na testaroume to default value.
+
+# elegxos 4 : Xrhsh metavlhths allou typou ws akeraio
+
+l = "Hello world"
+print l + 2 
+
+# elegxos 5 : praxeis me None 
+
+# elegxos 6 : Lathos tropos xrhshs synarthshs
 
 # elegxos 7 : epanalhpsh dhlwshs synarthshs me ton idio arithmo orismatwn
 
-# 1o paradeigma : synarthseis me idio arithmo orismatwn me idio onoma
-#def b(a,c):
-#  print "hi"
+# 1o paradeigma (kanonikh periptwsh , dhlwsh synarthshs me idio onoma me idio arithmo orismatwn)
+#def mul(x,y):
+#  return x * y
 
-#def b(a,b):
-#   print "hoy"
+#def mul(x,y):
+#   return x * y
 
-# 2o paradeigma : synarthseis me idio onoma, diaforetiko arithmo orismatwn kai 3h metavlhth sth 2h synarthsh me default value
-#def x(a,b):
-#   print "a and b"
+# 2o paradeigma (dhlwsh synarthshs me idio onoma me idio arithmo orismatwn kai ena extra defaul value)
+def div(x,y):
+   return x / y
 
-#def x(a,b,z = 1):
-#   print "a and b 2"
+def div(x,y,z = 1):
+   return x / y / z
 
+# 3o paradeigma (dhlwsh synarthshs me idio arithmo orismatwn , opou sth 2h synarthsh ena einai default)
 
-# 3o paradeigma : synarthseis me idio onoma, idio arithmo orismatwn , h 2h synarthsh exei default value sthn 3h parametro.
+def hello(x,y,z):
+   return x + y * z
 
-#def n(x,y,z):
-#   print x+y+z
+def hello(x,y,z=1):
+   return x + y * z 
 
-#def n(x,y,z = 1):
-#   print x+y+z
+# 4o paradeigma (Omoia me panw apla 3 fores declaration)
+
+def world(x = 1 ,y = 2):
+   return x + y   
+
+def world(x = 1 , y = 2):
+   return x + y
+
+def world(x = 1 , y = 2):
+   return x + y
