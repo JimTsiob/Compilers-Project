@@ -4,7 +4,7 @@ import java.util.*;
 
 import javax.crypto.interfaces.PBEKey;
 
-public class Visitor1 extends DepthFirstAdapter{
+public class Visitor1 extends DepthFirstAdapter {
 
     private SymbolTable symtable;
 
@@ -18,7 +18,7 @@ public class Visitor1 extends DepthFirstAdapter{
 
     // Elegxos periptwshs pou to id einai prin apo =.
 
-    public void inAAssignStatement(AAssignStatement node){
+    public void inAAssignStatement(AAssignStatement node) {
 
         String assignname = node.getId().toString();
         int line = ((TId) node.getId()).getLine();
@@ -27,13 +27,41 @@ public class Visitor1 extends DepthFirstAdapter{
         var.setName(assignname);
         var.setLineFound(line);
 
-        // variable type missing, var.setType
+        // set variable type according to expression being assigned
 
+        
+
+        PExpression expression = node.getExpression();
+
+        if (expression instanceof AValueExpression) {
+
+            AValueExpression value_expression = (AValueExpression)expression;
+
+            PValue value = value_expression.getValue();
+
+            if(value instanceof AStringValue){
+
+                var.setType("string");
+                }
+
+            else if (value instanceof ANumberValue) {
+                var.setType("integer");
+            }
+
+            else if (value instanceof ANoneValue) {
+                var.setType("none");
+            }
+        
+
+        }
 
         if(!symtable.getVariables().containsKey(assignname)){
             symtable.addVariable(assignname,var);
         }
+
     }
+
+
 
     // Elegxos periptwshs pou to id einai argument se function.
 
@@ -77,9 +105,22 @@ public class Visitor1 extends DepthFirstAdapter{
 
     
 
-    // Klhsh mh dhlwmenhs synarthshs (2os elegxos)
+   
 
-    public void inAFunction(AFunction node){
+
+
+    
+
+    
+
+    // Check every new function declaration
+    // Take its name , num of default args , num of non default args
+    // Then check if there is other func with the same name in the symbol table
+    // with same num of parameters.
+    // If so , dont add this func to symbol table and print error (Elegxos 7)
+
+
+    public void inAFunction(AFunction node) {
 
         Function f = new Function();
 
@@ -187,9 +228,94 @@ public class Visitor1 extends DepthFirstAdapter{
         }
 
 
+        // check for return types
 
 
-        symtable.addFunction(funcname,f);
+        PStatement statement = node.getStatement();
+
+
+        if(statement instanceof AReturnStatement ) {
+
+
+            AReturnStatement return_statement = (AReturnStatement) statement;
+
+            PExpression return_expression = return_statement.getExpression();
+
+
+            String expression_type = get_simple_expression_type(return_expression);
+
+
+            if(!expression_type.equals("not_simple")){
+
+                f.setReturns(expression_type);
+            }
+
+
+            else{   // if return statement is not simple, e.g. return x+y
+
+
+            }
+
+
+
+        }
+
+
+
+        // if function statement is not a return statement , set function return type
+        // as NONE
+
+        else {
+
+
+            f.setReturns("none");
+
+        }
+
+
+
+        
+
+        /////////////////////////////////////////////////////////
+
+        boolean add = true;
+
+        if(symtable.getFunctions().containsKey(funcname))  {
+
+            Function f_2 = symtable.getFunctions().get(funcname);
+
+
+            int def_args = f_2.getDefaultArgs();
+            int non_def_args = f_2.getNonDefaultArgs();
+
+
+            if (f.getDefaultArgs() + f.getNonDefaultArgs() == def_args + non_def_args) {
+
+                System.out.println("Line : " + line + " Function " + funcname + "has already been declared.");
+
+                add = false;
+
+                    }
+
+            else  {
+
+                if (f.getNonDefaultArgs() == non_def_args) {
+                    System.out.println("Line : " + line + " Function " + funcname + "has already been declared.");
+                    
+                    add = false;
+
+                    }
+
+
+            }
+
+
+        }
+
+
+        if(add) {
+            symtable.addFunction(funcname,f);
+            }
         // synexeia sto 2o visitor.
 
         // Epanalhspsh dhlwshs synarthshs me ton idio arithmo orismatwn (7os elegxos)
@@ -198,8 +324,90 @@ public class Visitor1 extends DepthFirstAdapter{
 
     }
 
-    
+
+    public String get_simple_expression_type(PExpression expression) {
+
+
+        String expression_type = " ";
+
+        if(expression instanceof AIdExpression){
+
+            String id_name = ( (AIdExpression) expression).getId().toString();
+
+            if(!symtable.getVariables().containsKey(id_name)) {
+
+                expression_type = "unknown";
+
+                
+            }
+
+            else {
+
+            Variable id = symtable.getVariables().get(id_name);
+
+            expression_type = id.getType();
+
+            }
+
+        }
+
+        else if(expression instanceof AValueExpression){
+
+            AValueExpression value_expression = (AValueExpression)expression;
+
+            PValue value = value_expression.getValue();
+
+
+            if(value instanceof AStringValue){
+
+                expression_type = "string";
+            }
+
+            else if (value instanceof ANumberValue) {
+                expression_type = "integer";
+            }
+
+            else if (value instanceof ANoneValue) {
+               
+                expression_type = "none";
+            }
+
+
+           
+
+
+        }
+
+        else if(expression instanceof AFunctioncallExpression){
+
+            AFunctioncallExpression function_call_expression = (AFunctioncallExpression)expression;
+
+            PFunctionCall function_call = function_call_expression.getFunctionCall();
+
+            AFunctionCall real_function_call = (AFunctionCall)function_call;
+
+            String funccallname = real_function_call.getId().toString();
+
+            Function f = symtable.getFunctions().get(funccallname);
+
+            expression_type = f.getReturns();
+
+        }
+
+
+
+        else                        // case given expression is not simple
+            expression_type = "not_simple";
+
+
+        return expression_type;
+
+
+    }
 
     
+
+
+
 
 }

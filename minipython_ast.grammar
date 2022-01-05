@@ -232,8 +232,8 @@ Productions
 	basic_expression{->expression} = 
 						{id} id {->New expression.id(id) } |
 					    {value} value {-> New expression.value(value) } |
-					    {max} max l_par value commavalue* r_par {-> New expression.max([value]) } |
-					    {min} min l_par value commavalue* r_par {-> New expression.min([value]) }|
+					    {max} max l_par value commavalue* r_par {-> New expression.max(value, [commavalue]) } |
+					    {min} min l_par value commavalue* r_par {-> New expression.min(value, [commavalue]) }|
 						{brexpr} id l_br expression r_br {-> New expression.brexpr(id,expression)} |
 				 	    {functioncall} function_call {-> New expression.functioncall(function_call) } |
 				        {lenexpr} len l_par expression r_par {->expression} |
@@ -375,7 +375,7 @@ Productions
 	// VALUE------------------------------------------------------
 
 
-	commavalue{->value} = comma value{->value};
+	commavalue = comma value{->New commavalue(value) };
 
 	value = 
 
@@ -481,13 +481,15 @@ expression = {add} [l]:expression [r]:expression |
 			 {power} [l]:expression [r]:expression |
 			 {id} id |
 			 {value} value |
-			 {max} value* |
-			 {min} value* |
+			 {max} value commavalue* |
+			 {min} value commavalue* |
 			 {brexpr} id expression |
 			 {functioncall} function_call |
 			 {brexprs} arglist ;
 
 
+
+commavalue = value;
 
 
 // END EXPRESSION----------------------------------------------

@@ -1,8 +1,6 @@
-
-# elegxos 1 : Xrhsh mh dhlwmenhs metavlhths
-
 def add(x,y):
-   return x + y   
+   return x + y
+   
 print k
 k = 0
 
@@ -30,9 +28,27 @@ sub(1) # lathos periptwsh 5 gia na testaroume to default value.
 l = "Hello world"
 print l + 2 
 
+# periptwsh pou exoume syntheth arithmitikh parastash
+
+print l + 3 + 2
+
+# periptwsh me synarthsh 
+
+def addition(x,y):
+   return x + y
+o = "hello world"
+print addition(2,o)
+
 # elegxos 5 : praxeis me None 
 
+var = None
+print var + 2
+
 # elegxos 6 : Lathos tropos xrhshs synarthshs
+
+def remove(x,y):
+   return "hello"
+print 2 * 2 + remove(2,1)
 
 # elegxos 7 : epanalhpsh dhlwshs synarthshs me ton idio arithmo orismatwn
 
