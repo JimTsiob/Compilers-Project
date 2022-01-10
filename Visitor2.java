@@ -5,75 +5,142 @@ import java.util.*;
 public class Visitor2 extends DepthFirstAdapter {
     private SymbolTable symtable;
 
-    Visitor2(SymbolTable symtable){
-
+    Visitor2(SymbolTable symtable) {
 
         this.symtable = symtable;
     }
 
-    // 2o elegxos (klhsh mh dhlwmenhs synarthshs meros 2 , elegxoume an oi synarhthseis pou kalountai einai dhlwmenes)
+    // 2o elegxos (klhsh mh dhlwmenhs synarthshs meros 2 , elegxoume an oi
+    // synarhthseis pou kalountai einai dhlwmenes)
 
-    public void inAFunctionCall(AFunctionCall node)  {
+    public void inAFunctionCall(AFunctionCall node) {
 
         String funccallname = node.getId().toString();
         int line = ((TId) node.getId()).getLine();
+        int real_line = (line + 1 )/ 2 ;
 
-        if(!symtable.getFunctions().containsKey(funccallname)){
-            System.out.println("Line " + line + " : Function " + funccallname + " has not been declared.");
+        if (!symtable.getFunctions().containsKey(funccallname)) {
+            System.out.println("Line " + real_line + " : Function " + funccallname + " has not been declared.");
             return;
         }
 
-
         Function f = symtable.getFunctions().get(funccallname);
-
-        
 
         int def_args = f.getDefaultArgs();
         int non_def_args = f.getNonDefaultArgs();
 
-
-
-
-
-
-        // ARGUMENTS CHECK 
-
+        // ARGUMENTS CHECK
 
         // we want the function call to consist of , at least, non_def_arguments
         // and max non_def_args + def_args
 
         LinkedList arglist = node.getArglist();
 
+        //System.out.println("Sto func call exei: " + arglist.size());
 
         // function call has no arguments
-        
-        if(arglist.size() == 0) {
 
-                int num_of_args = 0;
+        if (arglist.size() == 0) {
 
-                if(num_of_args < non_def_args | num_of_args > non_def_args+ def_args){
-                    System.out.println("Line " + line + " : Function " + funccallname + " has wrong number of parameters." + " Given : " + num_of_args + ". Required(at least) : " + non_def_args + ". Additionally: " + def_args + " more"); 
-                }
+            int num_of_args = 0;
+
+
+            if (num_of_args < non_def_args | num_of_args > non_def_args + def_args) {
+                System.out.println("Line " + real_line + " : Function " + funccallname + " has wrong number of parameters."
+                        + " Given : " + num_of_args + ". Required(at least) : " + non_def_args + ". Additionally: "
+                        + def_args + " more");
+            }
         }
 
 
 
         else {
 
+            //System.out.println("`Mpainei edo");
 
-            AArglist argument_list = (AArglist)arglist.get(0);
+
+            AArglist argument_list = (AArglist) arglist.get(0);
+
+
+            //PExpression first_expr = argument_list.getExpression();
+
+           
 
             LinkedList arguments = argument_list.getCommaexpr();
 
+            //System.out.println("Commaexpr has:  " + arguments.size());
 
             int num_of_args = arguments.size() + 1;
 
-            if(num_of_args < non_def_args | num_of_args > non_def_args + def_args)
-            System.out.println("Line " + line + " : Function " + funccallname + " has wrong number of parameters." + " Given : " + num_of_args + ". Required(at least) : " + non_def_args + ". Additionally: " + def_args + " more");
+            //System.out.println("Sto func call exei: " + num_of_args);
+
+            if (num_of_args < non_def_args | num_of_args > non_def_args + def_args)
+                System.out.println("Line " + real_line + " : Function " + funccallname + " has wrong number of parameters."
+                        + " Given : " + num_of_args + ". Required(at least) : " + non_def_args + ". Additionally: "
+                        + def_args + " more");
         }
 
-        
+ 
 
+        //////////////////////////////////////////
+        // WHEN FUNCTION THAT IS CALLED RETURNS AN OPERATION (ADD, MULT , ...)
+        // THE GIVEN PARAMETERS GET CHECKED IF THEY ARE OF THE SAME TYPE
+        // ELEGXOS 4
+
+
+        String return_type = f.getReturns();
+
+        if (return_type.equals("operation") && arglist.size() != 0 ) {
+
+            //check given parameters type
+
+            AArglist argument_list = (AArglist) arglist.get(0);
+
+
+            PExpression first_arg = argument_list.getExpression();
+
+            HashMap first_arg_type = get_simple_expression_type(first_arg);
+
+
+            LinkedList arguments = argument_list.getCommaexpr(); 
+
+
+            for (int i = 0; i < arguments.size(); i++)  {
+
+                ACommaexpr arg = (ACommaexpr)arguments.get(i);
+
+                PExpression real_arg = arg.getExpression();
+
+                HashMap arg_type = get_simple_expression_type(real_arg);
+
+                first_arg_type.putAll(arg_type);
+
+            }
+
+
+            first_arg_type.remove("real_line");
+
+            if (first_arg_type.containsKey("none")) {
+                System.out.println("Line " + real_line + " : function_call using none argument ");
+                }
+                else if (first_arg_type.containsKey("string") && first_arg_type.containsKey("integer") ) {
+                //System.out.println(types);
+                System.out.println("Line " + real_line + " : function_call using wrong type arguments ");
+            }
+
+            // Se periptwsh praxewn me string se addition kai loipes praxeis.
+
+            /*if (first_arg_type.containsKey("none")) {
+
+                    System.out.println("Line : " + real_line + " function_call using none argument ");
+            }
+            else if (first_arg_type.containsKey("string")  ) {
+                    if(first_arg_type.containsKey("integer"))
+                        System.out.println("Line : " + real_line + " function_call using wrong type arguments ");
+                    else if (return_type.equals("operation"))
+                        System.out.println("Line : " + real_line + " function_call using wrong type arguments ");
+            }*/
+        }
 
     }
 
@@ -81,271 +148,358 @@ public class Visitor2 extends DepthFirstAdapter {
     // Elegxos 5 (praxeis me None)
     // Elegxos 6 (Lathos tropos xrhshs synarthshs)
 
-    // boolean variable gia na bgainei ENA sfalma me kathe anadromh.
-    Boolean first_time = true;
-    // DRY
-    public void inArithmeticExpression(PExpression left,PExpression right,String operation){
-        String left_type = get_simple_expression_type(left);
-
-        String right_type = get_simple_expression_type(right);
-        
-        
-        // Elegxos 5
-
-        if (left_type.equals("none") || right_type.equals("none") ) {
-
-            System.out.println(operation +  " Expression using none  ");
-        }
-
-        else if(left_type.equals("unknown") || right_type.equals("unknown") ){
-
-            // if at least one variable is not declared (unknown) nothing is printed ,
-            // as this error is catched by rule_check 1.
-        }
-
-        // Elegxos 6
-        else if(!left_type.equals(right_type)  && first_time == true) {
-            System.out.println(left_type);
-            System.out.println(right_type);
-            System.out.println(operation +  " Expression using variables of different types. " );
-            first_time = false;
-        }
-    }
-
-
     // arxika xekiname me prosthesh
+
+
     public void inAAddExpression(AAddExpression node) {
-        PExpression left_expression = node.getL();
-
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-
-        inArithmeticExpression(left_expression, right_expression, "Add");
-        
+        evaluateExpressions(node, "add +");
     }
-
 
     // afairesh
-    public void inASubExpression(ASubExpression node){
-        PExpression left_expression = node.getL();
+    public void inASubExpression(ASubExpression node) {
+        evaluateExpressions(node, "sub -");
 
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-        inArithmeticExpression(left_expression, right_expression, "Sub");
+        //System.out.println("tora vgainei apo to sub ");
 
     }
 
     // pollaplasiasmos
-    public void inAMultExpression(AMultExpression node){
-        PExpression left_expression = node.getL();
+    public void inAMultExpression(AMultExpression node) {
+        evaluateExpressions(node, "mult *");
 
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-        inArithmeticExpression(left_expression, right_expression, "Mult");
+        //System.out.println("tora vgainei apo to mult ");
 
     }
 
     // diairesh
-    public void inADivExpression(ADivExpression node){
-        PExpression left_expression = node.getL();
-
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-        inArithmeticExpression(left_expression, right_expression, "Div");
+    public void inADivExpression(ADivExpression node) {
+        evaluateExpressions(node, "div /");
     }
 
     // Modulo
-    public void inAModExpression(AModExpression node){
-        PExpression left_expression = node.getL();
-
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-        inArithmeticExpression(left_expression, right_expression, "Mod");
+    public void inAModExpression(AModExpression node) {
+        evaluateExpressions(node, "mod %");
     }
 
     // Power
-    public void inAPowerExpression(APowerExpression node){
-        PExpression left_expression = node.getL();
-
-        PExpression right_expression = node.getR();
-
-        //int line =  node.getL().getLine();
-        inArithmeticExpression(left_expression, right_expression, "Power");
+    public void inAPowerExpression(APowerExpression node) {
+        evaluateExpressions(node, "power **");
     }
 
 
+   static int current_line = 0;
 
-    public String get_simple_expression_type(PExpression expression) {
+    // Xrhsimopoietai gia thn anadromh tou get_simple_expresion
+    public void evaluateExpressions(PExpression expression, String operation) {
 
 
-        String expression_type = " ";
+        HashMap<String, Integer> types = get_simple_expression_type(expression);
 
-        if(expression instanceof AIdExpression){
+        // pop the real_line key to get the expression line
 
-            String id_name = ( (AIdExpression) expression).getId().toString();
+        int expression_line = types.get("real_line");
 
-            if(!symtable.getVariables().containsKey(id_name)) {
 
-                expression_type = "unknown";
+        if(current_line != expression_line) {
 
-                
+            current_line = expression_line;
+
+
+            types.remove("real_line");
+
+
+
+            if (types.containsKey("none")) {
+
+                System.out.println("Line " + expression_line + " : expression  has none value in expression.");
+
             }
+
+
+      
+
+        
+
+            if (types.size() > 1 && (types.containsKey("string") || types.containsKey("integer"))){ //|| types.containsKey("operation"))) {
+
+                //System.out.println(types);
+                System.out.println("Line " + expression_line + " : expression using wrong value types ");
+                }
+
+            }
+
+
+    }
+
+    public HashMap<String, Integer> get_simple_expression_type(PExpression expression)  {
+
+
+
+        HashMap<String, Integer> evaluations = new HashMap<String, Integer>();
+
+
+        // check if given expression is Id : 
+
+        if (expression instanceof AIdExpression) {
+
+
+            String id_name = ((AIdExpression) expression).getId().toString();
+
+            int line = ((AIdExpression) expression).getId().getLine();
+
+            int real_line = (line + 1 )/ 2 ;
+
+            //System.out.println(real_line);
+
+            if (!symtable.getVariables().containsKey(id_name)) {
+                evaluations.put("unknown", 0);
+
+                // maybe there is no need for action , because in this case check no 1 throws an error
+            } 
 
             else {
 
-            Variable id = symtable.getVariables().get(id_name);
+                Variable id = symtable.getVariables().get(id_name);
 
-            expression_type = id.getType();
+                evaluations.put(id.getType(), 0);
 
+                evaluations.put("real_line", real_line);
             }
 
-        }
+            return evaluations;
+        } 
 
-        else if(expression instanceof AValueExpression) {
 
-            AValueExpression value_expression = (AValueExpression)expression;
+
+
+
+        // check if given expression is Value (string,number,none,id.function_call)
+
+        else if (expression instanceof AValueExpression) {
+
+
+            AValueExpression value_expression = (AValueExpression) expression;
+
 
             PValue value = value_expression.getValue();
 
 
-            if(value instanceof AStringValue){
+            if (value instanceof AStringValue) {
 
-                expression_type = "string";
-            }
+
+                AStringValue real_value = (AStringValue)value;
+
+                TString string = real_value.getString();
+
+                int line = string.getLine();
+
+                int real_line = (line + 1 )/ 2 ;
+
+
+                evaluations.put("string", 0);
+
+                evaluations.put("real_line", real_line);
+
+            } 
 
             else if (value instanceof ANumberValue) {
-                expression_type = "integer";
-            }
+
+
+                ANumberValue real_value = (ANumberValue)value;
+
+                TNumber number = real_value.getNumber();
+
+                int line = number.getLine();
+
+                int real_line = (line + 1 )/ 2 ;
+
+
+                evaluations.put("integer", 0);
+
+                evaluations.put("real_line", real_line);
+
+            } 
 
             else if (value instanceof ANoneValue) {
-               
-                expression_type = "none";
-            }
+
+                // nonevalue has no token to get line
+
+                evaluations.put("none", 0);
+
+            } 
 
             else if (value instanceof ACallonidValue) {
 
 
-                ACallonidValue real_value = (ACallonidValue)value;
+                ACallonidValue real_value = (ACallonidValue) value;
+
+                TId id = real_value.getId();
+
+                int line = id.getLine();
+
+                int real_line = (line + 1 )/ 2 ;
+
 
                 PFunctionCall function_call = real_value.getFunctionCall();
 
-                AFunctionCall real_function_call = (AFunctionCall)function_call;
+                AFunctionCall real_function_call = (AFunctionCall) function_call;
 
                 String funccallname = real_function_call.getId().toString();
 
                 Function f = symtable.getFunctions().get(funccallname);
 
-                expression_type = f.getReturns();
 
+                evaluations.put(f.getReturns(), 0);
+
+                evaluations.put("real_line", real_line);
 
 
             }
 
 
-        }
+            return evaluations;
+        } 
 
-        else if(expression instanceof AFunctioncallExpression){
 
-            AFunctioncallExpression function_call_expression = (AFunctioncallExpression)expression;
+
+        // check if given expression is a function call
+
+
+        else if (expression instanceof AFunctioncallExpression) {
+
+
+            AFunctioncallExpression function_call_expression = (AFunctioncallExpression) expression;
 
             PFunctionCall function_call = function_call_expression.getFunctionCall();
 
-            AFunctionCall real_function_call = (AFunctionCall)function_call;
+            AFunctionCall real_function_call = (AFunctionCall) function_call;
+
+            TId id = real_function_call.getId();
+
+            int line = id.getLine();
+
+            int real_line = (line + 1 )/ 2 ;
+
+
 
             String funccallname = real_function_call.getId().toString();
 
             Function f = symtable.getFunctions().get(funccallname);
 
-            expression_type = f.getReturns();
+            evaluations.put(f.getReturns(), 0);
 
-        }
+            evaluations.put("real_line", real_line);
 
 
+            return evaluations;
 
-        else{ // case given expression is not simple
-            // elegxoume kathe ypoperiptwsh expression me anadromh
-            if (expression instanceof APowerExpression){
+        } 
+
+
+            // case given expression is not simple
+                 // elegxoume kathe ypoperiptwsh expression me anadromh
+
+        else { 
+
+
+            if (expression instanceof APowerExpression) {
+
                 APowerExpression newexp = (APowerExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Power");
-            }
-            else if (expression instanceof ADivExpression){
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
+
+            } 
+
+            else if (expression instanceof ADivExpression) {
+
                 ADivExpression newexp = (ADivExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Div");
-            }
-            else if (expression instanceof AModExpression){
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
+
+            } 
+
+            else if (expression instanceof AModExpression) {
                 AModExpression newexp = (AModExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Mod");
-            }
-            else if (expression instanceof AMultExpression){
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
+            } 
+
+            else if (expression instanceof AMultExpression) {
                 AMultExpression newexp = (AMultExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Mult");
-            }
-            else if (expression instanceof AAddExpression){
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
+            } 
+
+            else if (expression instanceof AAddExpression) {
                 AAddExpression newexp = (AAddExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Add");
-            }
-            else if (expression instanceof ASubExpression){
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
+            } 
+
+            else if (expression instanceof ASubExpression) {
                 ASubExpression newexp = (ASubExpression) expression;
                 PExpression left = newexp.getL();
                 PExpression right = newexp.getR();
-                inArithmeticExpression(left, right, "Sub");
+                evaluations.putAll(get_simple_expression_type(left));
+                evaluations.putAll(get_simple_expression_type(right));
             }
-            
-        }                        
-            
 
-
-        return expression_type;
+            return evaluations;
+        }
 
 
     }
 
-    public void MaxMinExpression(LinkedList<ACommavalue> ll, String functype, PValue fv){
+
+
+
+    public void MaxMinExpression(LinkedList<ACommavalue> ll, String functype, PValue fv) {
         // lista pou kratame tous typous twn values
         LinkedList<String> types = new LinkedList<String>();
         String expression_type = "";
-
-        for (int i = 0; i < ll.size(); i++){
+        int real_line = 0;
+        boolean flag = true; // gia na vgazei ta sfalmata mia fora.
+        for (int i = 0; i < ll.size(); i++) {
             PValue value = ll.get(i).getValue();
-            //PValue value = value_expression.getValue();
-            
-            if(value instanceof AStringValue){
+            // PValue value = value_expression.getValue();
 
+            if (value instanceof AStringValue) {
                 expression_type = "string";
+                AStringValue v = (AStringValue) value;
+                TString str = v.getString();
+                int line = str.getLine();
+                real_line = (line + 1)/2;
             }
 
             else if (value instanceof ANumberValue) {
                 expression_type = "integer";
+                ANumberValue v = (ANumberValue) value;
+                TNumber num = v.getNumber();
+                int line = num.getLine();
+                real_line = (line + 1)/2;
             }
 
             else if (value instanceof ANoneValue) {
-               
                 expression_type = "none";
             }
 
             else if (value instanceof ACallonidValue) {
 
-
-                ACallonidValue real_value = (ACallonidValue)value;
+                ACallonidValue real_value = (ACallonidValue) value;
 
                 PFunctionCall function_call = real_value.getFunctionCall();
 
-                AFunctionCall real_function_call = (AFunctionCall)function_call;
+                AFunctionCall real_function_call = (AFunctionCall) function_call;
 
                 String funccallname = real_function_call.getId().toString();
 
@@ -353,36 +507,42 @@ public class Visitor2 extends DepthFirstAdapter {
 
                 expression_type = f.getReturns();
 
+                int line = real_function_call.getId().getLine();
 
-
+                real_line = (line + 1) / 2;
             }
 
-            types.add(i,expression_type);
+            types.add(i, expression_type);
         }
-        //PValue first_value = node.getValue();
+        // PValue first_value = node.getValue();
         String first_type = "";
-        if(fv instanceof AStringValue){
-
+        if (fv instanceof AStringValue) {
             first_type = "string";
+            AStringValue v = (AStringValue) fv;
+            TString str = v.getString();
+            int line = str.getLine();
+            real_line = (line + 1)/2;
         }
 
         else if (fv instanceof ANumberValue) {
             first_type = "integer";
+            ANumberValue v = (ANumberValue) fv;
+            TNumber num = v.getNumber();
+            int line = num.getLine();
+            real_line = (line + 1)/2;
         }
 
         else if (fv instanceof ANoneValue) {
-           
             first_type = "none";
         }
 
         else if (fv instanceof ACallonidValue) {
 
-
-            ACallonidValue real_value = (ACallonidValue)fv;
+            ACallonidValue real_value = (ACallonidValue) fv;
 
             PFunctionCall function_call = real_value.getFunctionCall();
 
-            AFunctionCall real_function_call = (AFunctionCall)function_call;
+            AFunctionCall real_function_call = (AFunctionCall) function_call;
 
             String funccallname = real_function_call.getId().toString();
 
@@ -390,130 +550,32 @@ public class Visitor2 extends DepthFirstAdapter {
 
             first_type = f.getReturns();
 
+            int line = real_function_call.getId().getLine();
 
+            real_line = (line + 1) / 2;
 
         }
-        for (int i = 0; i < types.size(); i++){
+        for (int i = 0; i < types.size(); i++) {
             String type = types.get(i);
-            if(!type.equals(first_type)){
-                System.out.println(functype + " function is using variables of different types.");
+            if (!type.equals(first_type) && flag) {
+                System.out.println("Line " + real_line + " : " + functype + " function is using variables of different types.");
+                flag = false;
             }
         }
     }
 
-
-    // periptwsh xrhshs twn synarthsewn Max min 
-    public void inAMinExpression(AMinExpression node){
+    // periptwsh xrhshs twn synarthsewn Max min
+    public void inAMinExpression(AMinExpression node) {
         LinkedList<ACommavalue> args = node.getCommavalue();
         PValue first_value = node.getValue();
-        MaxMinExpression(args, "Min",first_value);
-        
+        MaxMinExpression(args, "Min", first_value);
     }
 
-    public void inAMaxExpression(AMaxExpression node){
+    public void inAMaxExpression(AMaxExpression node) {
         LinkedList<ACommavalue> args = node.getCommavalue();
         PValue first_value = node.getValue();
-        MaxMinExpression(args, "Max",first_value);
+        MaxMinExpression(args, "Max", first_value);
     }
 
-    /*
-    // Epanalhspsh dhlwshs synarthshs me ton idio arithmo orismatwn (7os elegxos)
-    public void inAFunction(AFunction node){
 
-        String funcname = node.getId().toString();
-
-        int line = ((TId) node.getId()).getLine();
-
-        LinkedList args = node.getArgument();
-
-        int current_non_def_args = 0;
-        int current_def_args = 0;
-
-        // elegxoume an exoume orismata
-
-        if(!args.isEmpty()){
-            AArgument real_arguments = (AArgument)args.get(0);
-
-            // elegxos prwths parametrou
-
-            AParam first_arg = (AParam)real_arguments.getParam();
-
-            LinkedList value = first_arg.getValue(); // possible default value for first argument
-
-
-            // if there is no value, we have 1 non default argument
-
-            if(value.isEmpty()) {
-                current_non_def_args++;
-                
-            }
-
-
-            else if(!value.isEmpty()) {
-                current_def_args++;
-
-            }
-
-            // elegxos twn ypoloipwn parametrwn (an yparxoun)
-
-            LinkedList params = real_arguments.getCommaparam();
-
-            int paramsize = params.size() + 1;
-
-            if(!params.isEmpty()){
-
-                for (int i=0; i < params.size(); i++) {
-
-
-                    ACommaparam p = (ACommaparam)params.get(i);
-
-                    AParam param  = (AParam)p.getParam();
-
-                    //System.out.println(param.getId().toString());
-
-
-                    LinkedList val = param.getValue(); // possible default value for first argument
-
-
-                    // if there is no value, we have 1 non default argument
-
-                    if(val.isEmpty()) {
-                        current_non_def_args++;
-
-                    }
-
-                    // if there is a value, we have 1 default argument
-
-                    else if(!val.isEmpty()) {
-                        current_def_args++;
-
-                    }
-
-                }
-                
-            }
-
-        }
-
-        Function f = symtable.getFunctions().get(funcname);
-        // elegxos na vgazei to error mia fora.
-        if (f.getLineFound() == line){
-            return;
-        }
-
-        int def_args = f.getDefaultArgs();
-        int non_def_args = f.getNonDefaultArgs();
-
-        
-        // prwto if : elegxos an exoun idio arithmo parametrwn (2 kai 2 px, eite default eite non-default)
-        if (current_non_def_args + current_def_args == def_args + non_def_args){
-            System.out.println("Line : " + line + " Function " + funcname + "has already been declared.");
-        }else{
-            if (current_non_def_args == non_def_args){
-                System.out.println("Line : " + line + " Function " + funcname + "has already been declared.");
-            }
-        }
-    }
-
-    */
 }

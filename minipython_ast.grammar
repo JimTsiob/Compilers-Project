@@ -15,7 +15,11 @@ Helpers
 	lf = 10;
 	all = [0..127]; 
 	eol = lf | cr | cr lf ;
-	not_eol = [all - [cr + lf]]; 
+	not_eol = [all - [cr + lf]];
+	dq = 34;
+	sq = 39; 
+	str_dq = [not_eol - dq]; // ti periexei ena string me double quotes
+	str_sq = [not_eol - sq]; // paromoiws gia single quotes.
 
 Tokens
 	tab = 9;
@@ -73,7 +77,7 @@ Tokens
 	line_comment = '#' not_eol* eol; 
 	number = digit+ | (digit+ '.' digit+);
 	id = (letter | underscore) (letter | digit | underscore)*; // id name can also contain underscores
-	string = '"'not_eol* '"' | '''not_eol*''';
+	string = '"' str_dq* '"' | ''' str_sq* '''; // 
 
 
 
@@ -166,6 +170,9 @@ Productions
 
 
 				{print} tab* print arglist {-> New statement.print(arglist) } |
+
+
+				{commawarning} tab* id comma arglist {-> New statement.commawarning(id,arglist) }|
 
 
 				{assign} tab* id eq expression {-> New statement.assign(id,expression) } |
@@ -459,6 +466,7 @@ statement = {import} import_rule |
 			{for} [id1]:id [id2]:id statement |
 			{return} expression |
 			{print} arglist |
+			{commawarning} id arglist |
 			{assign} id expression |
 			{assignmin} id expression |
 			{assigndiv} id expression |
