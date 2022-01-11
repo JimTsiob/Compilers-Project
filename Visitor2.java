@@ -102,6 +102,7 @@ public class Visitor2 extends DepthFirstAdapter {
             HashMap first_arg_type = get_simple_expression_type(first_arg);
 
 
+
             LinkedList arguments = argument_list.getCommaexpr(); 
 
 
@@ -128,27 +129,12 @@ public class Visitor2 extends DepthFirstAdapter {
                 System.out.println("Line " + real_line + " : function_call using wrong type arguments ");
             }
 
-            // Se periptwsh praxewn me string se addition kai loipes praxeis.
-
-            /*if (first_arg_type.containsKey("none")) {
-
-                    System.out.println("Line : " + real_line + " function_call using none argument ");
-            }
-            else if (first_arg_type.containsKey("string")  ) {
-                    if(first_arg_type.containsKey("integer"))
-                        System.out.println("Line : " + real_line + " function_call using wrong type arguments ");
-                    else if (return_type.equals("operation"))
-                        System.out.println("Line : " + real_line + " function_call using wrong type arguments ");
-            }*/
+            
         }
 
     }
 
-    // Edw kalyptontai oi parakatw elegxoi
-    // Elegxos 5 (praxeis me None)
-    // Elegxos 6 (Lathos tropos xrhshs synarthshs)
 
-    // arxika xekiname me prosthesh
 
 
     public void inAAddExpression(AAddExpression node) {
@@ -189,7 +175,10 @@ public class Visitor2 extends DepthFirstAdapter {
 
    static int current_line = 0;
 
-    // Xrhsimopoietai gia thn anadromh tou get_simple_expresion
+   
+
+   //static boolean none = false;
+
     public void evaluateExpressions(PExpression expression, String operation) {
 
 
@@ -197,7 +186,21 @@ public class Visitor2 extends DepthFirstAdapter {
 
         // pop the real_line key to get the expression line
 
-        int expression_line = types.get("real_line");
+        int expression_line;
+
+        try {
+
+             expression_line = types.get("real_line");
+
+        }
+
+        catch(NullPointerException e){
+
+            expression_line = 0;
+
+
+            System.out.println("Line " + expression_line + " : expression is full of none values (wrong line when expression is full of nones! ")  ;
+        }
 
 
         if(current_line != expression_line) {
@@ -211,7 +214,8 @@ public class Visitor2 extends DepthFirstAdapter {
 
             if (types.containsKey("none")) {
 
-                System.out.println("Line " + expression_line + " : expression  has none value in expression.");
+                System.out.println("Line " + expression_line + " : expression  has none value ");
+                //none = true;
 
             }
 
@@ -220,7 +224,7 @@ public class Visitor2 extends DepthFirstAdapter {
 
         
 
-            if (types.size() > 1 && (types.containsKey("string") || types.containsKey("integer"))){ //|| types.containsKey("operation"))) {
+            else if (types.size() > 1  && (types.containsKey("string") || types.containsKey("integer"))){ //|| types.containsKey("operation"))) {
 
                 //System.out.println(types);
                 System.out.println("Line " + expression_line + " : expression using wrong value types ");
@@ -380,15 +384,65 @@ public class Visitor2 extends DepthFirstAdapter {
 
             int real_line = (line + 1 )/ 2 ;
 
-
-
             String funccallname = real_function_call.getId().toString();
 
             Function f = symtable.getFunctions().get(funccallname);
 
-            evaluations.put(f.getReturns(), 0);
+            String return_type = f.getReturns();
+
+
+            ///////////////////////////////////////////////
+
+
+            LinkedList arglist = real_function_call.getArglist();
+
+
+            if (arglist.size() != 0 && return_type.equals("operation")) {
+
+            
+
+
+
+                AArglist argument_list = (AArglist) arglist.get(0);
+
+                PExpression first_arg = argument_list.getExpression();
+
+                HashMap first_arg_type = get_simple_expression_type(first_arg);
+
+                first_arg_type.remove("real_line");
+
+            
+
+
+                //System.out.println(return_type);
+
+        
+
+
+                Optional<String> firstKey = first_arg_type.keySet().stream().findFirst();
+            
+                if (firstKey.isPresent()) {
+
+                    //System.out.println("Mpainei edo");
+
+                    return_type = firstKey.get();
+
+                    //System.out.println(return_type);
+                
+                }
+
+            ///////////////////////////////////////
+
+            }
+
+            evaluations.put(return_type, 0);
+
+            
 
             evaluations.put("real_line", real_line);
+
+            //System.out.println(evaluations.keySet());
+
 
 
             return evaluations;
