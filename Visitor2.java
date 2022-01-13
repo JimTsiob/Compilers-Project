@@ -199,7 +199,8 @@ public class Visitor2 extends DepthFirstAdapter {
             expression_line = 0;
 
 
-            System.out.println("Line " + expression_line + " : expression is full of none values (wrong line when expression is full of nones! ")  ;
+            System.out.println("Line " + expression_line + " : expression is full of none values (wrong line when expression is full of nones!)");
+            return;
         }
 
 
